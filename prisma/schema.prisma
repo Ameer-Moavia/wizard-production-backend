@@ -1,0 +1,200 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  ORGANIZER
+  PARTICIPANT
+}
+
+enum EventVisibility {
+  ONSITE
+  ONLINE
+}
+
+enum AttachmentType {
+  IMAGE
+  VIDEO
+}
+enum EventType{
+WEBINAR
+SEMINAR
+WORKSHOP
+COMPETITION
+CONFERENCE
+OTHER
+
+}
+
+enum ParticipationStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+  CANCELLED
+}
+
+enum OtpPurpose {
+  LOGIN
+  SIGNUP
+  RESET
+}
+enum Eventstatus{
+  CANCELLED
+  COMPLETED
+  DRAFT
+  ACTIVE
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String?
+  email     String   @unique
+  password  String?
+  role      Role     @default(PARTICIPANT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organizerProfile   OrganizerProfile?
+  participantProfile ParticipantProfile?
+
+  otps        OTP[]
+  resetTokens PasswordResetToken[]
+}
+
+model UnverifiedUser {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      Role     @default(PARTICIPANT)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model OrganizerProfile {
+  id     Int    @id @default(autoincrement())
+  userId Int    @unique
+  name   String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Organizer belongs to a company
+  companyId Int?
+  company   Company? @relation("CompanyOrganizers", fields: [companyId], references: [id], onDelete: SetNull)
+
+  // If this organizer owns a company
+  ownedCompany Company? @relation("CompanyOwner")
+
+  events Event[]
+}
+
+model Company {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+
+  // Owner of the company
+  ownerId Int              @unique
+  owner   OrganizerProfile @relation("CompanyOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  // All organizers associated with this company
+  organizers OrganizerProfile[] @relation("CompanyOrganizers")
+
+  // Company events
+  events Event[]
+}
+
+model ParticipantProfile {
+  id     Int    @id @default(autoincrement())
+  userId Int    @unique
+  name   String
+
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  participations EventParticipant[]
+}
+
+model Event {
+  id               Int       @id @default(autoincrement())
+  title            String
+  description      String
+  type             EventVisibility
+  venue            String?
+  joinLink         String?
+  contactInfo      String?
+  totalSeats       Int?
+  requiresApproval Boolean   @default(false)
+  joinQuestions    Json?
+  startDate        DateTime
+  endDate          DateTime
+  createdAt        DateTime  @default(now())
+
+  organizer    OrganizerProfile   @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  organizerId  Int
+  companyId    Int
+  company      Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  attachments  Attachment[]
+  participants EventParticipant[]
+  status       Eventstatus @default(ACTIVE)
+  TypeOfEvent  EventType
+}
+
+model Attachment {
+  id        Int            @id @default(autoincrement())
+  eventId   Int
+  url       String
+  type      AttachmentType
+  publicId  String?
+  createdAt DateTime       @default(now())
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+}
+
+model EventParticipant {
+  id            Int                 @id @default(autoincrement())
+  eventId       Int
+  participantId Int
+  status        ParticipationStatus @default(CONFIRMED)
+  answers       Json?
+  joinedAt      DateTime            @default(now())
+
+  event       Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  participant ParticipantProfile @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, participantId])
+  @@index([eventId, status])
+}
+
+model OTP {
+  id         Int        @id @default(autoincrement())
+  userId     Int?
+  email      String
+  code       String
+  purpose    OtpPurpose
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime   @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([email, code])
+}
+
+model PasswordResetToken {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  token     String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+}
