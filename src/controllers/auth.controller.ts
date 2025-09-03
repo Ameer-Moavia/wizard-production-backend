@@ -250,7 +250,11 @@ export const verifyOtp = async (req: Request, res: Response) => {
     let user = await prisma.user.findUnique({
       where: { email },
       include: {
-        participantProfile: true,
+        participantProfile: {
+          include: {
+            participations: true, // 👈 add this
+          },
+        },
         organizerProfile: true,
       },
     });
@@ -273,7 +277,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
             : undefined,
         },
         include: {
-          participantProfile: true,
+          participantProfile: { include: { participations: true } },
           organizerProfile: true,
         },
       });
@@ -318,7 +322,8 @@ export const verifyOtp = async (req: Request, res: Response) => {
         role: user!.role,
         profileId,
         companyId,
-        name:user!.name
+        name: user!.name,
+        participations: user!.participantProfile?.participations || [], // 👈 added
       },
       token,
     });
