@@ -6,7 +6,7 @@ const router = Router();
 
 router.get("/", requireAuth, requireRole("ADMIN"), listUsers);
 router.patch("/:id/role", requireAuth, requireRole("ADMIN"), updateRole);
-router.delete("/:id", requireAuth, requireRole("PARTICIPANT"), deleteUser);
+router.delete("/:id", requireAuth, requireRole("PARTICIPANT","ORGANIZER","ADMIN"), deleteUser);
 router.patch("/me", requireAuth, updateUser);
 router.post("/me/change-password", requireAuth, changePassword);
 export default router;
