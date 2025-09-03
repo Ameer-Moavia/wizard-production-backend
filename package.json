@@ -7,10 +7,11 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
+   "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
+    "prisma:dev": "prisma migrate dev --name init",
     "prisma:deploy": "prisma migrate deploy",
-    "vercel-build": "npm run prisma:generate && tsc && npm run prisma:deploy"
+    "prisma:studio": "prisma studio"
   },
   "dependencies": {
     "@prisma/client": "^6.14.0",
