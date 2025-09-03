@@ -1,7 +1,7 @@
 // src/controllers/user.controller.ts
 import { Request, Response } from "express";
 import { prisma } from "../prisma/client";
-import { comparePassword,hashPassword } from "@utils/crypto";
+import { comparePassword,hashPassword } from "../utils/crypto";
 
 export const listUsers = async (_req: Request, res: Response) => {
   const users = await prisma.user.findMany({ select: { id: true, name: true, email: true, role: true, createdAt: true }, orderBy: { id: "asc" } });

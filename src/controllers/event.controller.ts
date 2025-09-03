@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import { prisma } from "../prisma/client";
 import { AttachmentType } from "@prisma/client";
 import { sendEmail } from "../utils/email";
-import { generateOtp } from "@utils/otp";
+import { generateOtp } from "../utils/otp";
 
 export const createEvent = async (req: Request, res: Response) => {
   try {

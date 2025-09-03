@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { prisma } from "../prisma/client";
 import bcrypt from "bcrypt";
 import { randomBytes } from "crypto";
-import { sendEmail } from "@utils/email";
+import { sendEmail } from "../utils/email";
 
 // Create company
 export const createCompany = async (req: Request, res: Response) => {
